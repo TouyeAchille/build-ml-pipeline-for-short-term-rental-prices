@@ -3,6 +3,7 @@ import pandas as pd
 import wandb
 
 
+
 def pytest_addoption(parser):
     parser.addoption("--csv", action="store")
     parser.addoption("--ref", action="store")
@@ -11,13 +12,17 @@ def pytest_addoption(parser):
     parser.addoption("--max_price", action="store")
 
 
+
+
 @pytest.fixture(scope='session')
 def data(request):
-    run = wandb.init(job_type="data_tests", resume=True)
+    run = wandb.init(project='nyc_airbnb', job_type="data_tests", name="test_data", resume=True)
+
+    csv_file=request.config.option.csv
 
     # Download input artifact. This will also note that this script is using this
     # particular version of the artifact
-    data_path = run.use_artifact(request.config.option.csv).file()
+    data_path = run.use_artifact(csv_file).file()
 
     if data_path is None:
         pytest.fail("You must provide the --csv option on the command line")
@@ -29,11 +34,12 @@ def data(request):
 
 @pytest.fixture(scope='session')
 def ref_data(request):
-    run = wandb.init(job_type="data_tests", resume=True)
+    run = wandb.init(project='nyc_airbnb', job_type="data_tests", name='test_data',resume=True)
 
     # Download input artifact. This will also note that this script is using this
     # particular version of the artifact
-    data_path = run.use_artifact(request.config.option.ref).file()
+    ref_file=request.config.option.ref
+    data_path = run.use_artifact(ref_file).file()
 
     if data_path is None:
         pytest.fail("You must provide the --ref option on the command line")

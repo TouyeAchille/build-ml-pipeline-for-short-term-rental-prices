@@ -5,10 +5,16 @@ This script splits the provided dataframe in test and remainder
 import argparse
 import logging
 import pandas as pd
+import sys
+import os
 import wandb
 import tempfile
 from sklearn.model_selection import train_test_split
-from wandb_utils.log_artifact import log_artifact
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from wandb_utils.log_artifacts import log_artifact
+
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -16,7 +22,7 @@ logger = logging.getLogger()
 
 def go(args):
 
-    run = wandb.init(job_type="train_val_test_split")
+    run = wandb.init(job_type="train_val_test_split", name='split_data')
     run.config.update(args)
 
     # Download input artifact. This will also note that this script is using this
@@ -27,7 +33,7 @@ def go(args):
     df = pd.read_csv(artifact_local_path)
 
     logger.info("Splitting trainval and test")
-    trainval, test = train_test_split(
+    df_trainval, df_test = train_test_split(
         df,
         test_size=args.test_size,
         random_state=args.random_seed,
@@ -35,7 +41,7 @@ def go(args):
     )
 
     # Save to output files
-    for df, k in zip([trainval, test], ['trainval', 'test']):
+    for df, k in zip([df_trainval, df_test], ['trainval', 'test']):
         logger.info(f"Uploading {k}_data.csv dataset")
         with tempfile.NamedTemporaryFile("w") as fp:
 
@@ -53,10 +59,10 @@ def go(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Split test and remainder")
 
-    parser.add_argument("input", type=str, help="Input artifact to split")
+    parser.add_argument("--input", type=str, help="Input artifact to split")
 
     parser.add_argument(
-        "test_size", type=float, help="Size of the test split. Fraction of the dataset, or number of items"
+        "--test_size", type=float, help="Size of the test split. Fraction of the dataset, or number of items"
     )
 
     parser.add_argument(

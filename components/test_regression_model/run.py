@@ -2,6 +2,7 @@
 """
 This step takes the best model, tagged with the "prod" tag, and tests it against the test dataset
 """
+import sys
 import argparse
 import logging
 import wandb
@@ -9,7 +10,8 @@ import mlflow
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
 
-from wandb_utils.log_artifact import log_artifact
+#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+#from wandb_utils.log_artifacts import log_artifact
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -18,7 +20,7 @@ logger = logging.getLogger()
 
 def go(args):
 
-    run = wandb.init(job_type="test_model")
+    run = wandb.init(job_type="test_model", name='inference')
     run.config.update(args)
 
     logger.info("Downloading artifacts")
